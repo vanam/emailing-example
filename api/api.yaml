@@ -1,0 +1,166 @@
+swagger: '2.0'
+info:
+  version: '1.0.0'
+  title: Simple Emailing Using OAuth2 Application Flow
+  description: This is an example of using OAuth2 Application Flow in a specification to describe security to your API.
+tags:
+- name: emailing
+- name: status
+ 
+# Under securityDefinitions we declare which security schemes can be used.
+# These definitions do not affect to the operations, but can be applied
+# using the 'security' key at the global level or the operation level.
+# In this sample, we'll see how to apply the security definition globally,
+# and override it at the operation level.
+#
+# Note that for Application Flow, you must provide the Token URL.
+securityDefinitions:
+  application:
+    type: oauth2
+    # This should be updated to the Token URL of your OAuth provider.
+    tokenUrl: http://example.com/oauth/token
+    flow: application
+    scopes:
+      write: allows modifying resources
+      read: allows reading resources
+
+# Here we apply the security flow called 'application' globally to all the opeartions in the spec. 
+# This security scheme is defined above in the 'securityDefinitions' section.
+# Global security can be overriden an operation level as seen in the example below
+security:
+  - application:
+    - read
+    - write
+paths:
+  /send:
+    # In this operation we do not apply the security, because it was applied globally above.
+    # The security will be applied to this operation for that reason.
+    post:
+      tags:
+      - emailing
+      summary: Send an email
+      description: This endpoint allows you to send an email.
+      parameters:
+      - in: body
+        name: body
+        description: Email object that needs to be send
+        required: true
+        schema:
+          $ref: '#/definitions/EmailObject'
+      responses:
+        202:
+          description: Accepted
+          schema:
+            $ref: '#/definitions/EmptyResponse'
+        400:
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /ping:
+    get:
+      tags:
+      - status
+      summary: Server heartbeat operation
+      description: This operation shows how to override the global security defined above, as we want to open it up for all users.
+      # We want to require no security schemes and override the globally define security scheme.
+      # To do that, we simply provide an empty array to the 'security' property.
+      security: [ ]
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/EmptyResponse'
+# Schema definitions
+definitions:
+  EmptyResponse:
+    type: object
+  ErrorResponse:
+    type: object
+    required: 
+    - message
+    properties:
+      message:
+        type: string
+      errors:
+        type: array
+        items: 
+          type: object
+          properties:
+            field: 
+              type: string
+            message:
+              type: string
+            code:
+              type: string
+              enum:
+              - missing
+              - invalid
+
+  EmailObject:
+    type: object
+    required: 
+    - to
+    - from
+    - subject
+    - content
+    properties:
+      to:
+        type: array
+        description: An array of recipients. Each object within this array may contain the name, but must always contain the email, of a recipient.
+        minItems: 1
+        maxItems: 1000
+        items:
+          $ref: '#/definitions/EmailOwnerObject'
+      cc:
+        type: array
+        description: An array of recipients who will receive a copy of your email. Each object within this array may contain the name, but must always contain the email, of a recipient.
+        maxItems: 1000
+        items:
+          $ref: '#/definitions/EmailOwnerObject'
+      bcc:
+        type: array
+        description: An array of recipients who will receive a blind carbon copy of your email. Each object within this array may contain the name, but must always contain the email, of a recipient.
+        maxItems: 1000
+        items:
+          $ref: '#/definitions/EmailOwnerObject'
+      from:
+        $ref: '#/definitions/EmailOwnerObject'
+      subject:
+        type: string
+        description: Subject of your email.
+        minLength: 1
+      content:
+        type: object
+        required: 
+        - type
+        - value
+        properties:
+          type:
+            type: string
+            description: The mime type of the content you are including in your email. For example, “text/plain” or “text/html”.
+          value:
+            type: string
+            description: The actual content of the specified mime type that you are including in your email.
+            minLength: 1
+
+  EmailOwnerObject:
+    type: object
+    required:
+      - email
+    properties:
+      email:
+        type: string
+        format: "email"
+      name:
+        type: string
+        description: The name of the email owner
+          
+# Added by API Auto Mocking Plugin
+host: virtserver.swaggerhub.com
+basePath: /vanam/emailing-example/1.0.0
+schemes:
+ - https
