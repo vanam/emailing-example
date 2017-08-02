@@ -1,0 +1,11 @@
+{
+    "name": "vanam/emailing-example",
+    "type": "project",
+    "require": {
+        "php": ">=7.1.0",
+        "ext-mysqlnd": "*",
+        "ext-zip": "*",
+
+        "dg/adminer-custom": "^1.9"
+    }
+}
